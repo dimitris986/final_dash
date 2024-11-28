@@ -200,7 +200,12 @@ def load_data(user_id):
     try:
         load_dotenv()
         connection_string = os.getenv('DATABASE_CONNECTION_STRING')
-        print(f"Connection String: {connection_string}")  # Debug print
+        print("Attempting to connect with connection string:", connection_string)
+        
+        # Verify driver is available
+        available_drivers = pyodbc.drivers()
+        print("Available ODBC Drivers:", available_drivers)
+        
         conn = pyodbc.connect(connection_string)
         
         df = pd.read_sql(query, conn)
@@ -209,8 +214,13 @@ def load_data(user_id):
         
         conn.close()
         return df
+    except pyodbc.Error as e:
+        print(f"ODBC Connection Error: {e}")
+        # Detailed error information
+        print("Error details:", e.args)
+        return pd.DataFrame()
     except Exception as e:
-        print(f"Database Connection Error: {e}")  # Detailed error logging
+        print(f"General Connection Error: {e}")
         return pd.DataFrame()
 
 # Δημιουργία του Dash app
