@@ -193,15 +193,25 @@ def get_filtered_sql_query(user_id):
     return SQL_QUERY
 
 def load_data(user_id):
-    """Φορτώνει τα δεδομένα με βάση τα δικαιώματα του χρήστη"""
     query = get_filtered_sql_query(user_id)
     if query is None:
         return pd.DataFrame()
     
-    # Σύνδεση στη βάση δεδομένων
-    load_dotenv()
-    connection_string = os.getenv('DATABASE_CONNECTION_STRING')
-    conn = pyodbc.connect(connection_string)
+    try:
+        load_dotenv()
+        connection_string = os.getenv('DATABASE_CONNECTION_STRING')
+        print(f"Connection String: {connection_string}")  # Debug print
+        conn = pyodbc.connect(connection_string)
+        
+        df = pd.read_sql(query, conn)
+        df['years'] = df['years'].astype(int)
+        df['months'] = df['months'].astype(int)
+        
+        conn.close()
+        return df
+    except Exception as e:
+        print(f"Database Connection Error: {e}")  # Detailed error logging
+        return pd.DataFrame()
     
     # Εκτέλεση του query
     df = pd.read_sql(query, conn)
