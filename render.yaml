@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: dash-analytics-dashboard
+    name: app
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:server
