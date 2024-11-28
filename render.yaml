@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: dash-analytics-dashboard
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:server
+    envVars:
+      - key: DATABASE_CONNECTION_STRING
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.10.0
