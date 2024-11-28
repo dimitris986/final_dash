@@ -10,3 +10,5 @@ gunicorn
 matplotlib
 seaborn
 python-dotenv
+unixodbc
+unixodbc-dev
