@@ -1,0 +1,12 @@
+dash
+dash-bootstrap-components
+plotly
+pandas
+numpy
+sqlalchemy
+pyodbc
+urllib3
+gunicorn
+matplotlib
+seaborn
+python-dotenv
