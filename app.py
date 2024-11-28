@@ -212,14 +212,6 @@ def load_data(user_id):
     except Exception as e:
         print(f"Database Connection Error: {e}")  # Detailed error logging
         return pd.DataFrame()
-    
-    # Εκτέλεση του query
-    df = pd.read_sql(query, conn)
-    df['years'] = df['years'].astype(int)
-    df['months'] = df['months'].astype(int)
-    
-    conn.close()
-    return df
 
 # Δημιουργία του Dash app
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
