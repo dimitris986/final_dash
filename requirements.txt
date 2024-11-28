@@ -10,3 +10,5 @@ gunicorn
 matplotlib
 seaborn
 python-dotenv
+sudo apt-get update
+sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
