@@ -16,6 +16,7 @@ import pyodbc
 from decimal import Decimal
 from dotenv import load_dotenv
 import os
+import sys
 
 # Ορισμός δικαιωμάτων χρηστών
 user_permissions = {
@@ -192,7 +193,31 @@ def get_filtered_sql_query(user_id):
     """
     return SQL_QUERY
 
+def test_odbc_drivers():
+    try:
+        print("ODBC Drivers:")
+        drivers = pyodbc.drivers()
+        print(drivers)
+        
+        # Προσπάθεια σύνδεσης
+        connection_string = os.getenv('DATABASE_CONNECTION_STRING')
+        print("Connection String:", connection_string)
+        
+        if not drivers:
+            print("No ODBC drivers found!", file=sys.stderr)
+            return False
+        
+        return True
+    except Exception as e:
+        print(f"ODBC Driver Test Error: {e}", file=sys.stderr)
+        return False
+
 def load_data(user_id):
+    # Προσθήκη ελέγχου πριν τη σύνδεση
+    if not test_odbc_drivers():
+        print("ODBC driver test failed", file=sys.stderr)
+        return pd.DataFrame()
+    
     query = get_filtered_sql_query(user_id)
     if query is None:
         return pd.DataFrame()
