@@ -213,39 +213,49 @@ def test_odbc_drivers():
         return False
 
 def load_data(user_id):
+    print(f"Loading data for user: {user_id}")  # Debug print
+    
     # Προσθήκη ελέγχου πριν τη σύνδεση
     if not test_odbc_drivers():
-        print("ODBC driver test failed", file=sys.stderr)
+        print("ODBC driver test failed")  # Debug print
         return pd.DataFrame()
     
     query = get_filtered_sql_query(user_id)
     if query is None:
+        print(f"No query generated for user {user_id}")  # Debug print
         return pd.DataFrame()
     
     try:
         load_dotenv()
         connection_string = os.getenv('DATABASE_CONNECTION_STRING')
-        print("Attempting to connect with connection string:", connection_string)
+        print("Connection String:", connection_string)  # Debug print
         
         # Verify driver is available
         available_drivers = pyodbc.drivers()
-        print("Available ODBC Drivers:", available_drivers)
+        print("Available ODBC Drivers:", available_drivers)  # Debug print
         
         conn = pyodbc.connect(connection_string)
         
+        print("Executing query...")  # Debug print
         df = pd.read_sql(query, conn)
+        
+        print("Query result shape:", df.shape)  # Debug print
+        print("Columns:", list(df.columns))  # Debug print
+        
         df['years'] = df['years'].astype(int)
         df['months'] = df['months'].astype(int)
         
         conn.close()
         return df
     except pyodbc.Error as e:
-        print(f"ODBC Connection Error: {e}")
+        print(f"ODBC Connection Error: {e}")  # Debug print
         # Detailed error information
         print("Error details:", e.args)
         return pd.DataFrame()
     except Exception as e:
-        print(f"General Connection Error: {e}")
+        print(f"General Connection Error: {e}")  # Debug print
+        import traceback
+        traceback.print_exc()
         return pd.DataFrame()
 
 # Δημιουργία του Dash app
