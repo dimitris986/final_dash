@@ -212,52 +212,56 @@ def test_odbc_drivers():
         print(f"ODBC Driver Test Error: {e}", file=sys.stderr)
         return False
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def load_data(user_id):
-    print(f"Loading data for user: {user_id}")  # Debug print
-    
-    # Προσθήκη ελέγχου πριν τη σύνδεση
-    if not test_odbc_drivers():
-        print("ODBC driver test failed")  # Debug print
-        return pd.DataFrame()
-    
-    query = get_filtered_sql_query(user_id)
-    if query is None:
-        print(f"No query generated for user {user_id}")  # Debug print
-        return pd.DataFrame()
+    logger.info(f"Loading data for user: {user_id}")
     
     try:
+        # Check ODBC drivers
+        available_drivers = pyodbc.drivers()
+        if not available_drivers:
+            logger.error("No ODBC drivers found")
+            return pd.DataFrame()
+        
+        # Generate query
+        query = get_filtered_sql_query(user_id)
+        if query is None:
+            logger.warning(f"No query generated for user {user_id}")
+            return pd.DataFrame()
+        
+        # Load environment variables
         load_dotenv()
         connection_string = os.getenv('DATABASE_CONNECTION_STRING')
-        print("Connection String:", connection_string)  # Debug print
         
-        # Verify driver is available
-        available_drivers = pyodbc.drivers()
-        print("Available ODBC Drivers:", available_drivers)  # Debug print
+        if not connection_string:
+            logger.error("DATABASE_CONNECTION_STRING not found in environment")
+            return pd.DataFrame()
         
-        conn = pyodbc.connect(connection_string)
-        
-        print("Executing query...")  # Debug print
-        df = pd.read_sql(query, conn)
-        
-        print("Query result shape:", df.shape)  # Debug print
-        print("Columns:", list(df.columns))  # Debug print
-        
-        df['years'] = df['years'].astype(int)
-        df['months'] = df['months'].astype(int)
-        
-        conn.close()
-        return df
+        # Attempt connection
+        with pyodbc.connect(connection_string) as conn:
+            logger.info("Database connection established")
+            df = pd.read_sql(query, conn)
+            
+            if df.empty:
+                logger.warning("Query returned no data")
+            
+            df['years'] = df['years'].astype(int)
+            df['months'] = df['months'].astype(int)
+            
+            return df
+    
     except pyodbc.Error as e:
-        print(f"ODBC Connection Error: {e}")  # Debug print
-        # Detailed error information
-        print("Error details:", e.args)
-        return pd.DataFrame()
+        logger.error(f"ODBC Connection Error: {e}")
+        logger.error(f"Error details: {e.args}")
     except Exception as e:
-        print(f"General Connection Error: {e}")  # Debug print
-        import traceback
-        traceback.print_exc()
-        return pd.DataFrame()
-
+        logger.error(f"Unexpected error in load_data: {e}")
+        logger.error(traceback.format_exc())
+    
+    return pd.DataFrame()
 # Δημιουργία του Dash app
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 server = app.server
