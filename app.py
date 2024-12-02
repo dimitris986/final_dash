@@ -585,46 +585,66 @@ def update_business_unit_routes_chart(data_json, selected_year, selected_month):
     [Input("url", "search")]
 )
 def initialize_data(search):
+    print("Search parameter received:", search)  # Debug print
+    
     if not search:
+        print("No search parameter found")  # Debug print
         return "", [], None, [], None, "All"
     
-    query_params = parse_qs(search.lstrip("?"))
-    user_id = query_params.get("user", [None])[0]
-    selected_year = query_params.get("year", [None])[0]
-    selected_month = query_params.get("month", ["All"])[0]
-    
-    if user_id not in user_permissions:
-        return "", [], None, [], None, "All"
-    
-    # Φόρτωση δεδομένων
-    df = load_data(user_id)
-    if df.empty:
-        return "", [], None, [], None, "All"
-    
-    # Δημιουργία επιλογών για τα dropdowns
-    permissions = user_permissions[user_id]
-    business_units = permissions['business_units']
-    years = [int(year) for year in permissions['years']]
-    
-    # Προσθήκη επιλογής του έτους από το URL
-    default_year = int(selected_year) if selected_year and int(selected_year) in years else max(years)
-    
-    # Επεξεργασία του μήνα
     try:
-        default_month = int(selected_month) if selected_month != "All" else "All"
-        if default_month != "All" and (default_month < 1 or default_month > 12):
+        # Remove the leading '?' if present
+        search = search.lstrip('?')
+        
+        # Use parse_qs to handle the query parameters
+        query_params = parse_qs(search)
+        print("Parsed query parameters:", query_params)  # Debug print
+        
+        # Extract user parameter differently
+        user_id = query_params.get('user', [None])[0]
+        selected_year = query_params.get('year', [None])[0]
+        selected_month = query_params.get('month', ["All"])[0]
+        
+        print(f"Extracted parameters: user={user_id}, year={selected_year}, month={selected_month}")  # Debug print
+        
+        if user_id not in user_permissions:
+            print(f"User {user_id} not in permissions")  # Debug print
+            return "", [], None, [], None, "All"
+        
+        # Φόρτωση δεδομένων
+        df = load_data(user_id)
+        if df.empty:
+            print("Loaded dataframe is empty")  # Debug print
+            return "", [], None, [], None, "All"
+        
+        # Δημιουργία επιλογών για τα dropdowns
+        permissions = user_permissions[user_id]
+        business_units = permissions['business_units']
+        years = [int(year) for year in permissions['years']]
+        
+        # Προσθήκη επιλογής του έτους από το URL
+        default_year = int(selected_year) if selected_year and int(selected_year) in years else max(years)
+        
+        # Επεξεργασία του μήνα
+        try:
+            default_month = int(selected_month) if selected_month != "All" else "All"
+            if default_month != "All" and (default_month < 1 or default_month > 12):
+                default_month = "All"
+        except ValueError:
             default_month = "All"
-    except ValueError:
-        default_month = "All"
-    
-    return (
-        df.to_json(date_format='iso', orient='split'),
-        [{"label": bu, "value": bu} for bu in business_units],
-        business_units[0],
-        [{"label": str(year), "value": year} for year in sorted(years)],
-        default_year,
-        default_month
-    )
+        
+        return (
+            df.to_json(date_format='iso', orient='split'),
+            [{"label": bu, "value": bu} for bu in business_units],
+            business_units[0],
+            [{"label": str(year), "value": year} for year in sorted(years)],
+            default_year,
+            default_month
+        )
+    except Exception as e:
+        print(f"Error in initialize_data: {e}")  # Debug print
+        import traceback
+        traceback.print_exc()
+        return "", [], None, [], None, "All"
 
 @app.callback(
     Output("grouped-bar-chart", "figure"),
