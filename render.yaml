@@ -1,10 +1,11 @@
 services:
   - type: web
-    name: app
-    runtime: python
-    buildCommand: |
-      pip install -r requirements.txt
-    startCommand: gunicorn app:server
+    name: dash-analytics-app
+    runtime: docker
+    region: oregon  # Choose a region
+    plan: free
     envVars:
       - key: DATABASE_CONNECTION_STRING
         sync: false
+    buildCommand: docker build -t dash-app .
+    startCommand: docker run -p 8050:8050 dash-app
