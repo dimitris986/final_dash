@@ -879,4 +879,5 @@ def update_profit_pie_chart(data_json, selected_year, selected_month):
     return fig
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8050)
+    port = int(os.environ.get('PORT', 8050))
+    server.run(host='0.0.0.0', port=port)
