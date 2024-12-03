@@ -22,5 +22,5 @@ COPY . .
 # Expose port
 EXPOSE 8050
 
-# Command to run the application
-CMD ["python", "app.py"]
+# Use gunicorn for production
+CMD ["gunicorn", "-b", "0.0.0.0:8050", "app:server"]
