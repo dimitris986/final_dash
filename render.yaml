@@ -6,6 +6,6 @@ services:
     plan: free
     envVars:
       - key: DATABASE_CONNECTION_STRING
-        sync: false
+        sync: true
     buildCommand: docker build -t dash-app .
     startCommand: docker run -p 8050:8050 dash-app
